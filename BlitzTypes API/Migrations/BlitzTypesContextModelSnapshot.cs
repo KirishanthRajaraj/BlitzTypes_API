@@ -38,7 +38,27 @@ namespace BlitzTypes_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EnglishWords");
+                    b.ToTable("EnglishWords", (string)null);
+                });
+
+            modelBuilder.Entity("BlitzTypes_API.Models.GermanWord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Words")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("words");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GermanWords", (string)null);
                 });
 #pragma warning restore 612, 618
         }

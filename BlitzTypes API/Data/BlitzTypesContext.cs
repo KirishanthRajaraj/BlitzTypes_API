@@ -19,12 +19,25 @@ public partial class BlitzTypesContext : DbContext//IdentityDbContext<User>
     }
 
     public virtual DbSet<EnglishWord> EnglishWords { get; set; }
+    public virtual DbSet<GermanWord> GermanWords { get; set; }
 
-   
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<EnglishWord>(entity =>
         {
+            entity.ToTable("EnglishWords");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Words)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("words");
+        });
+
+        modelBuilder.Entity<GermanWord>(entity =>
+        {
+            entity.ToTable("GermanWords");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Words)
                 .HasMaxLength(50)
