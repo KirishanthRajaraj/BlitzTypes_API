@@ -35,5 +35,16 @@ namespace BlitzTypes_API.Controllers
                 return BadRequest(ModelState);
             return Ok(englishWords);
         }
+
+        [HttpGet]
+        public IActionResult GetAverageWordLength()
+        {
+
+            var averageWordLength = _englishWordsRepository.AverageWordLength();
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            return Ok(averageWordLength);
+        }
     }
 }

@@ -1,5 +1,7 @@
 using BlitzTypes_API.Data;
+using BlitzTypes_API.Models.Authentication;
 using BlitzTypes_API.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,10 @@ builder.Services.AddScoped<EnglishWordsRepository>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication().AddCookie(IdentityConstants.ApplicationScheme);
+
+
 builder.Services.AddDbContext<BlitzTypesContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));

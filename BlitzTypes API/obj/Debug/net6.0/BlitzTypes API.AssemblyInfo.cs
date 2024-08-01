@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e867a9cb3851c1afad313ad538534f359332ac91")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

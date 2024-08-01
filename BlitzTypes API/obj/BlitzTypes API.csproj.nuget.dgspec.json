@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Rajaraj\\source\\repos\\BlitzTypes API\\BlitzTypes API\\BlitzTypes API.csproj": {}
+    "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\BlitzTypes API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Rajaraj\\source\\repos\\BlitzTypes API\\BlitzTypes API\\BlitzTypes API.csproj": {
+    "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\BlitzTypes API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Rajaraj\\source\\repos\\BlitzTypes API\\BlitzTypes API\\BlitzTypes API.csproj",
+        "projectUniqueName": "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\BlitzTypes API.csproj",
         "projectName": "BlitzTypes API",
-        "projectPath": "C:\\Users\\Rajaraj\\source\\repos\\BlitzTypes API\\BlitzTypes API\\BlitzTypes API.csproj",
-        "packagesPath": "C:\\Users\\Rajaraj\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Rajaraj\\source\\repos\\BlitzTypes API\\BlitzTypes API\\obj\\",
+        "projectPath": "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\BlitzTypes API.csproj",
+        "packagesPath": "C:\\Users\\Kiri\\.nuget\\packages\\",
+        "outputPath": "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Rajaraj\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Kiri\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -40,6 +40,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[7.0.3, )"
@@ -53,6 +57,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[7.0.3, )"
+            },
+            "Microsoft.Extensions.Identity.Core": {
+              "target": "Package",
+              "version": "[8.0.6, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -70,6 +78,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.25, 6.0.25]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[6.0.25, 6.0.25]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.25, 6.0.25]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.25, 6.0.25]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -78,7 +104,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.103\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
         }
       }
     }

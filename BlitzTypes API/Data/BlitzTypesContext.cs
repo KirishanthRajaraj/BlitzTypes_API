@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using BlitzTypes_API.Models;
+using BlitzTypes_API.Models.Authentication;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlitzTypes_API.Data;
 
-public partial class BlitzTypesContext : DbContext
+public partial class BlitzTypesContext : DbContext//IdentityDbContext<User>
 {
     public BlitzTypesContext()
     {
@@ -29,6 +31,8 @@ public partial class BlitzTypesContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("words");
         });
+
+        //modelBuilder.ApplyConfiguration(new ApplicationUserEntityConfiguration())
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -6,8 +6,8 @@ namespace BlitzTypes_API.Repositories
     public class EnglishWordsRepository
     {
         public readonly BlitzTypesContext _context;
-        public EnglishWordsRepository(BlitzTypesContext context) 
-        { 
+        public EnglishWordsRepository(BlitzTypesContext context)
+        {
             _context = context;
         }
 
@@ -18,11 +18,27 @@ namespace BlitzTypes_API.Repositories
 
         public List<EnglishWord> GetEnglishWords(int toSkip, int toTake)
         {
-            var query = _context.EnglishWords.OrderBy(e => Guid.NewGuid()).AsQueryable();
-            query = query
-                .Skip(toSkip)
-                .Take(toTake);
+            List<EnglishWord> result = new List<EnglishWord>();
+
+            var query = _context.EnglishWords
+                                .OrderBy(e => Guid.NewGuid())
+                                .Skip(toSkip)
+                                .Take(toTake);
+
             return query.ToList();
+        }
+
+        public int AverageWordLength()
+        {
+            var query = _context.EnglishWords.AsQueryable();
+            List<EnglishWord> allEnglishWords = query.ToList();
+            var wordLengthSum = 0;
+            foreach (var word in allEnglishWords)
+            {
+                wordLengthSum += word.Words.ToString().Length;
+            }
+            var averageWordLength = wordLengthSum / allEnglishWords.Count;
+            return averageWordLength;
         }
     }
 }
