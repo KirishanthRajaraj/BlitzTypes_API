@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlitzTypes_API.Data;
 
-public partial class BlitzTypesContext : DbContext//IdentityDbContext<User>
+public partial class BlitzTypesContext : IdentityDbContext
 {
     public BlitzTypesContext()
     {
@@ -48,6 +48,8 @@ public partial class BlitzTypesContext : DbContext//IdentityDbContext<User>
         //modelBuilder.ApplyConfiguration(new ApplicationUserEntityConfiguration())
 
         OnModelCreatingPartial(modelBuilder);
+        base.OnModelCreating(modelBuilder);
+
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
