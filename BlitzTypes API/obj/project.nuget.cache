@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "yJotCg0k8dlmojm1bM7BiN8SeRI32+K/DCC1khkn6n+hSZZr6HnT4Gxb5SD0+ObRWgMSBlhuajP7Xe18Ule92g==",
+  "dgSpecHash": "2QP2fw0pNHRHKlq7tFBk1TRsN5RmhnOD29PHE8hWpveHwMifMXXOy+pwts0S8wtDkzqxcnv9NmCHXzSagjgy4w==",
   "success": true,
   "projectFilePath": "C:\\Coding\\Blitztypes\\BlitzTypes_API\\BlitzTypes API\\BlitzTypes API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kiri\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\Kiri\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",
     "C:\\Users\\Kiri\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\Kiri\\.nuget\\packages\\microsoft.aspnetcore.authentication.google\\8.0.7\\microsoft.aspnetcore.authentication.google.8.0.7.nupkg.sha512",
     "C:\\Users\\Kiri\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.7\\microsoft.aspnetcore.authentication.jwtbearer.8.0.7.nupkg.sha512",
     "C:\\Users\\Kiri\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.6\\microsoft.aspnetcore.cryptography.internal.8.0.6.nupkg.sha512",
     "C:\\Users\\Kiri\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.6\\microsoft.aspnetcore.cryptography.keyderivation.8.0.6.nupkg.sha512",

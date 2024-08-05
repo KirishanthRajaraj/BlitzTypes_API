@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("2bd79aad-49b8-400f-ac39-5cb11b8e85d3")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45b7be05a91efd3ec9f46733f6ea8c045bfa5716")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+776704622009d4679cc004b7edacb3abe6b3c14d")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlitzTypes API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

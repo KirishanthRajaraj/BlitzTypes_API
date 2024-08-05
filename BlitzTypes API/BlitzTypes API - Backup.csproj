@@ -6,11 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>BlitzTypes_API</RootNamespace>
     <PackageProjectUrl></PackageProjectUrl>
-    <UserSecretsId>2bd79aad-49b8-400f-ac39-5cb11b8e85d3</UserSecretsId>
+    <UserSecretsId>2af87b63-4017-412d-8d04-b7ef04d71d29</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />

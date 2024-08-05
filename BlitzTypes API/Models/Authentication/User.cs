@@ -1,9 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using BlitzTypes_API.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace BlitzTypes_API.Models.Authentication
 {
     public class User : IdentityUser
     {
-        public string? middleName { get; set; }
+        public DateTime? joinedDate { get; set; }
+        public int? highScoreWPM { get; set; }
+        public int? highScoreAccuracy { get; set; }
+        public int? secondsWritten { get; set; }
+        public Language? preferredLanguage { get; set; }
+        public Language? preferredTime { get; set; }
     }
 }

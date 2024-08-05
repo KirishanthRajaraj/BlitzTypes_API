@@ -30,12 +30,18 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
     };
+})
+.AddGoogle(googleOptions =>
+{
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddScoped<WordsRepository>();
+builder.Services.AddScoped<UserRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -48,7 +54,7 @@ builder.Services.AddDbContext<BlitzTypesContext>(options =>
 //builder.Services.AddIdentityApiEndpoints<IdentityUser>()
 //.AddEntityFrameworkStores<BlitzTypesContext>();
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<BlitzTypesContext>()
     .AddDefaultTokenProviders();
 

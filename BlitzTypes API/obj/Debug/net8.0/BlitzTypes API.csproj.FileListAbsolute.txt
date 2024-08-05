@@ -82,3 +82,4 @@ C:\Coding\Blitztypes\BlitzTypes_API\BlitzTypes API\obj\Debug\net8.0\BlitzTypes A
 C:\Coding\Blitztypes\BlitzTypes_API\BlitzTypes API\obj\Debug\net8.0\BlitzTypes API.genruntimeconfig.cache
 C:\Coding\Blitztypes\BlitzTypes_API\BlitzTypes API\obj\Debug\net8.0\ref\BlitzTypes API.dll
 C:\Coding\Blitztypes\BlitzTypes_API\BlitzTypes API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Coding\Blitztypes\BlitzTypes_API\BlitzTypes API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll

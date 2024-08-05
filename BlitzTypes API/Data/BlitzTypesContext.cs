@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlitzTypes_API.Data;
 
-public partial class BlitzTypesContext : IdentityDbContext
+public partial class BlitzTypesContext : IdentityDbContext<User>
 {
     public BlitzTypesContext()
     {
