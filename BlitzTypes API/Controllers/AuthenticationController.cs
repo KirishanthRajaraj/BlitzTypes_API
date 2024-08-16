@@ -24,6 +24,8 @@ namespace BlitzTypes_API.Controllers
             _configuration = configuration;
         }
 
+        // create createToken method
+
         [HttpPost]
         [AllowAnonymous]
         public IActionResult ExternalLogin(string provider, string returnUrl)
@@ -31,6 +33,8 @@ namespace BlitzTypes_API.Controllers
             var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Authentication", new { ReturnUrl = returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             properties.AllowRefresh = true;
+            properties.Items["ReturnUrl"] = returnUrl;
+
             return Challenge(properties, provider);
         }
 
@@ -55,7 +59,7 @@ namespace BlitzTypes_API.Controllers
                 var user = await _userManager.FindByEmailAsync(info.Principal.FindFirstValue(ClaimTypes.Email));
                 var token = GenerateJwtToken(user);
 
-                return Ok(new { Token = token, RedirectUrl = returnUrl ?? "/" });
+                return RedirectToAction("ExternalLogin", new { Token = token, RedirectUrl = returnUrl ?? "/" });
             }
             else if (result.IsLockedOut)
             {
@@ -73,7 +77,7 @@ namespace BlitzTypes_API.Controllers
 
                 var user = new User
                 {
-                    UserName = email,
+                    UserName = givenName,
                     Email = email,
                 };
 
@@ -86,7 +90,7 @@ namespace BlitzTypes_API.Controllers
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         var token = GenerateJwtToken(user);
 
-                        return Ok(new { Token = token, RedirectUrl = returnUrl ?? "/" });
+                        return Redirect(Uri.UnescapeDataString("http://" + returnUrl) ?? "/");
                     }
                     else
                     {
@@ -149,7 +153,8 @@ namespace BlitzTypes_API.Controllers
             if (result.Succeeded)
             {
                 var token = GenerateJwtToken(user);
-                return Ok(new { Token = token });
+                SetCookie(token);
+                return Ok();
             }
             else
             {
@@ -180,5 +185,27 @@ namespace BlitzTypes_API.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        [NonAction]
+        public IActionResult SetCookie(string token)
+        {
+            try
+            {
+                Response.Cookies.Append("JwtToken", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    // change in production
+                    SameSite = SameSiteMode.None,
+                    Secure = true,
+                    Expires = DateTime.Now.AddMinutes(15),
+                });
+            } catch (Exception ex) { 
+                return BadRequest(ex);
+            }
+ 
+
+            return Ok();
+        }
+
     }
 }

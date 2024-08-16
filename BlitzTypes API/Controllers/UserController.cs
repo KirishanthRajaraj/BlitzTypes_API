@@ -92,11 +92,15 @@ namespace BlitzTypes_API.Controllers
             try
             {
                 List<User> candidates = _userRepository.GetAllUsers();
-                var result = candidates.Select(user => new
+                var result = candidates
+                .Where(user => user.highScoreWPM > 0)
+                .Select(user => new
                 {
                     user.UserName,
                     user.highScoreWPM
-                }).ToList();
+                })
+                .OrderByDescending(user => user.highScoreWPM)
+                .ToList();
                 return Ok(result);
             }
             catch (Exception ex)

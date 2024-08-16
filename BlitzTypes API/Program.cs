@@ -30,6 +30,15 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            context.Token = context.Request.Cookies["JwtToken"];
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddGoogle(googleOptions =>
 {
@@ -62,7 +71,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 {
-    build.WithOrigins("http://localhost:3000").AllowAnyHeader().AllowAnyMethod();
+    build.WithOrigins("https://localhost:3000", "http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
 }));
 
 var app = builder.Build();
