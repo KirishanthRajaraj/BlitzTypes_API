@@ -1,6 +1,7 @@
 using BlitzTypes_API.Data;
 using BlitzTypes_API.Models.Authentication;
 using BlitzTypes_API.Repositories;
+using BlitzTypes_API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 builder.Services.AddScoped<WordsRepository>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

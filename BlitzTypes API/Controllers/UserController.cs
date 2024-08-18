@@ -30,9 +30,9 @@ namespace BlitzTypes_API.Controllers
             _userManager = userManager;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-            _userService = new UserService(userManager, httpContextAccessor);
             _context = context;
-            _userRepository = new UserRepository(context);
+            _userService = new UserService(userManager, httpContextAccessor, context);
+            _userRepository = new UserRepository(context, userManager);
         }
 
         [Authorize(AuthenticationSchemes = "Bearer")]

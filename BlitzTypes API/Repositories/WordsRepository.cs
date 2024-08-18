@@ -19,6 +19,7 @@ namespace BlitzTypes_API.Repositories
         public List<T> GetWords<T>(int toSkip, int toTake) where T : WordBase
         {
             var query = _context.Set<T>()
+                                .Where(e => e.Words.Length < 9)
                                 .OrderBy(e => Guid.NewGuid())
                                 .Skip(toSkip)
                                 .Take(toTake);

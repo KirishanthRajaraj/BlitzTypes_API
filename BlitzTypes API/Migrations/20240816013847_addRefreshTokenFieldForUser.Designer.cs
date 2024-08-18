@@ -4,6 +4,7 @@ using BlitzTypes_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlitzTypes_API.Migrations
 {
     [DbContext(typeof(BlitzTypesContext))]
-    partial class BlitzTypesContextModelSnapshot : ModelSnapshot
+    [Migration("20240816013847_addRefreshTokenFieldForUser")]
+    partial class addRefreshTokenFieldForUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,14 +95,8 @@ namespace BlitzTypes_API.Migrations
                     b.Property<Guid?>("refreshToken")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("refreshTokenExpiry")
-                        .HasColumnType("datetime2");
-
                     b.Property<int?>("secondsWritten")
                         .HasColumnType("int");
-
-                    b.Property<TimeSpan?>("typingTime")
-                        .HasColumnType("time");
 
                     b.HasKey("Id");
 

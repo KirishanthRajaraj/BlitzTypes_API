@@ -1,9 +1,14 @@
-﻿using BlitzTypes_API.Models.Authentication;
+﻿using BlitzTypes_API.Data;
+using BlitzTypes_API.Models.Authentication;
+using BlitzTypes_API.Repositories;
+using BlitzTypes_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -16,12 +21,21 @@ namespace BlitzTypes_API.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
+        private readonly UserService _userService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly BlitzTypesContext _context;
+        private readonly UserRepository _userRepository;
 
-        public AuthenticationController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
+        public AuthenticationController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,  IHttpContextAccessor httpContextAccessor, BlitzTypesContext
+             context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _context = context;
+            _userService = new UserService(userManager, httpContextAccessor, context);
+            _userRepository = new UserRepository(context, userManager);
         }
 
         // create createToken method
@@ -58,8 +72,14 @@ namespace BlitzTypes_API.Controllers
             {
                 var user = await _userManager.FindByEmailAsync(info.Principal.FindFirstValue(ClaimTypes.Email));
                 var token = GenerateJwtToken(user);
-
-                return RedirectToAction("ExternalLogin", new { Token = token, RedirectUrl = returnUrl ?? "/" });
+                Guid refreshToken = CreateRefreshToken();
+                bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, null);
+                if (!isRefreshTokenSet)
+                {
+                    return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
+                }
+                _userService.SetCookie(token, refreshToken);
+                return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
             }
             else if (result.IsLockedOut)
             {
@@ -89,7 +109,13 @@ namespace BlitzTypes_API.Controllers
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         var token = GenerateJwtToken(user);
-
+                        Guid refreshToken = CreateRefreshToken();
+                        bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, null);
+                        if (!isRefreshTokenSet)
+                        {
+                            return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
+                        }
+                        _userService.SetCookie(token, refreshToken);
                         return Redirect(Uri.UnescapeDataString("http://" + returnUrl) ?? "/");
                     }
                     else
@@ -129,6 +155,23 @@ namespace BlitzTypes_API.Controllers
             return BadRequest(ModelState);
         }
 
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> GetToken()
+        {
+            string refreshTokenStr = await _userService.CreateNewAccessToken();
+
+            if (string.IsNullOrEmpty(refreshTokenStr)) return BadRequest();
+            Guid refreshToken = Guid.Parse(refreshTokenStr);
+            var user = await _userRepository.GetUserByRefreshTokenHashAsync(refreshToken);
+            if(user == null) return BadRequest(ModelState);
+            var newToken = GenerateJwtToken(user);
+
+            _userService.SetCookie(newToken, refreshToken);
+            
+            return Ok();
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
@@ -137,14 +180,15 @@ namespace BlitzTypes_API.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return BadRequest(ModelState);
             }
-
+           
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
                 user = await _userManager.FindByEmailAsync(model.Username);
             }
 
-            if (user == null ) {
+            if (user == null)
+            {
                 ModelState.AddModelError(string.Empty, "No user found");
                 return BadRequest(ModelState);
             }
@@ -153,7 +197,13 @@ namespace BlitzTypes_API.Controllers
             if (result.Succeeded)
             {
                 var token = GenerateJwtToken(user);
-                SetCookie(token);
+                Guid refreshToken = CreateRefreshToken();
+                bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, user);
+                if (!isRefreshTokenSet)
+                {
+                    return BadRequest();
+                }
+                _userService.SetCookie(token, refreshToken);
                 return Ok();
             }
             else
@@ -187,24 +237,11 @@ namespace BlitzTypes_API.Controllers
         }
 
         [NonAction]
-        public IActionResult SetCookie(string token)
+        public Guid CreateRefreshToken()
         {
-            try
-            {
-                Response.Cookies.Append("JwtToken", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    // change in production
-                    SameSite = SameSiteMode.None,
-                    Secure = true,
-                    Expires = DateTime.Now.AddMinutes(15),
-                });
-            } catch (Exception ex) { 
-                return BadRequest(ex);
-            }
- 
-
-            return Ok();
+            // encryption todo
+            Guid refreshToken = Guid.NewGuid();
+            return refreshToken;
         }
 
     }
