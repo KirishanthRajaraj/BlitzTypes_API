@@ -3,9 +3,12 @@ using BlitzTypes_API.Controllers;
 using BlitzTypes_API.Data;
 using BlitzTypes_API.Models.Authentication;
 using BlitzTypes_API.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
@@ -83,6 +86,34 @@ namespace BlitzTypes_API.Services
             return false;
         }
 
+        public async Task<User?> GetCurrentUser()
+        {
+            var claims = _httpContextAccessor.HttpContext?.User?.Claims;
+            if (claims == null)
+            {
+                return null;
+            }
+
+            var nameIdentifierClaims = _httpContextAccessor.HttpContext?.User?.Claims
+                .Where(c => c.Type == ClaimTypes.NameIdentifier);
+
+            var userId = nameIdentifierClaims?.LastOrDefault()?.Value;
+
+            if (userId == null)
+            {
+                return null;
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return user;
+        }
+
         public async Task<bool> SetRefreshTokenAsync(Guid providedRefreshToken, User? _user)
         {
             var user = _user;
@@ -136,24 +167,61 @@ namespace BlitzTypes_API.Services
             return refreshToken;
         }
 
-        public bool SetCookie(string token, Guid? refreshToken)
+        public bool SetCookie(string token, Guid? refreshToken, bool rememberMe = true, bool logout = false)
         {
             try
             {
+                // AccessToken Cookie
+                var cookieOptionsJwtAccessToken = new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                };
+
                 if (!string.IsNullOrEmpty(token))
                 {
-                    _httpContextAccessor.HttpContext.Response.Cookies.Append("JwtToken", token, new CookieOptions
+                    if (rememberMe)
                     {
-                        HttpOnly = true,
-                        // change in production
-                        SameSite = SameSiteMode.None,
-                        Secure = true,
-                        Expires = DateTime.Now.AddSeconds(15),
-                    });
+                        cookieOptionsJwtAccessToken.Expires = DateTime.Now.AddMinutes(15);
+                        _httpContextAccessor.HttpContext.Response.Cookies.Append("JwtToken", token, cookieOptionsJwtAccessToken);
+                    }
+                    else
+                    {
+                        // if user unselected remember me option, do session storage of cookie
+                        _httpContextAccessor.HttpContext.Response.Cookies.Append("JwtToken", token, cookieOptionsJwtAccessToken);
+                    }
                 }
+                else if (logout)
+                {
+                    cookieOptionsJwtAccessToken.Expires = DateTime.Now.AddDays(-1);
+                    _httpContextAccessor.HttpContext.Response.Cookies.Append("JwtToken", "", cookieOptionsJwtAccessToken);
+                }
+
+                // refreshToken Cookie
+
+                var cookieOptionsRefreshToken = new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                };
 
                 if (refreshToken.HasValue)
                 {
+
+
+                    if (rememberMe)
+                    {
+                        cookieOptionsRefreshToken.Expires = DateTime.Now.AddMinutes(15);
+                        _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken.ToString(), cookieOptionsRefreshToken);
+                    }
+                    else
+                    {
+                        // if user unselected remember me option, do session storage of cookie
+                        _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken.ToString(), cookieOptionsRefreshToken);
+                    }
+
                     _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken.ToString(), new CookieOptions
                     {
                         HttpOnly = true,
@@ -161,6 +229,10 @@ namespace BlitzTypes_API.Services
                         Secure = true,
                         Expires = DateTime.UtcNow.AddDays(30)
                     });
+                } else if (logout)
+                {
+                    cookieOptionsRefreshToken.Expires = DateTime.Now.AddYears(-1);
+                    _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", "", cookieOptionsRefreshToken);
                 }
             }
             catch (Exception ex)
@@ -169,6 +241,15 @@ namespace BlitzTypes_API.Services
             }
 
 
+            return true;
+        }
+
+        public async Task<bool> logoutUser(User? user)
+        {
+            bool isCookieSet = SetCookie("", null, false, logout: true);
+            if (!isCookieSet) { return false; }
+            bool refreshTokenIsRemoved = await _userRepository.removeRefreshTokenFromUser(user);
+            if (!refreshTokenIsRemoved) { return false; }
             return true;
         }
 

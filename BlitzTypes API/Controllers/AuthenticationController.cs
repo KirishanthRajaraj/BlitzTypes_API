@@ -14,6 +14,7 @@ using System.Text;
 
 namespace BlitzTypes_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class AuthenticationController : Controller
@@ -26,7 +27,7 @@ namespace BlitzTypes_API.Controllers
         private readonly BlitzTypesContext _context;
         private readonly UserRepository _userRepository;
 
-        public AuthenticationController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration,  IHttpContextAccessor httpContextAccessor, BlitzTypesContext
+        public AuthenticationController(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, BlitzTypesContext
              context)
         {
             _userManager = userManager;
@@ -130,6 +131,7 @@ namespace BlitzTypes_API.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
@@ -164,14 +166,15 @@ namespace BlitzTypes_API.Controllers
             if (string.IsNullOrEmpty(refreshTokenStr)) return BadRequest();
             Guid refreshToken = Guid.Parse(refreshTokenStr);
             var user = await _userRepository.GetUserByRefreshTokenHashAsync(refreshToken);
-            if(user == null) return BadRequest(ModelState);
+            if (user == null) return BadRequest(ModelState);
             var newToken = GenerateJwtToken(user);
 
             _userService.SetCookie(newToken, refreshToken);
-            
+
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
@@ -180,7 +183,7 @@ namespace BlitzTypes_API.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return BadRequest(ModelState);
             }
-           
+
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
@@ -212,7 +215,16 @@ namespace BlitzTypes_API.Controllers
             }
         }
 
-        //logout todo
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            var user = await _userService.GetCurrentUser();
+            if (user == null) { return Unauthorized(); }
+            var isUserLoggedOut = await _userService.logoutUser(user);
+            if (!isUserLoggedOut) { return StatusCode(500, "An unexpected error occured working with the current HttpContext."); }
+            return Ok( new { Message = "Successfully logged out User" });
+        }
 
         private string GenerateJwtToken(User user)
         {

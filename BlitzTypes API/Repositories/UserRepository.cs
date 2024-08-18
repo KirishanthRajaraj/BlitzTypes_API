@@ -40,5 +40,17 @@ namespace BlitzTypes_API.Repositories
             var query = _context.Users.FirstOrDefault(x => x.Id == id);
             return query;
         }
+
+        public async Task<bool> removeRefreshTokenFromUser(User? user)
+        {
+            if(user == null) return false;
+            user.refreshToken = null;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

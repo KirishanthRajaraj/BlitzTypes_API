@@ -53,7 +53,7 @@ namespace BlitzTypes_API.Controllers
 
         [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet]
-        public async Task<IActionResult> GetCurrentUser()
+        public async Task<IActionResult> GetCurrentUserForFrontend()
         {
             var claims = _httpContextAccessor.HttpContext?.User?.Claims;
             if (claims == null)
@@ -108,8 +108,9 @@ namespace BlitzTypes_API.Controllers
                 return BadRequest();
             }
 
-
         }
+
+
 
     }
 }
