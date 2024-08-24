@@ -12,7 +12,7 @@ namespace BlitzTypes_API.Models.Authentication
         public int? secondsWritten { get; set; }
         public Language? preferredLanguage { get; set; }
         public Language? preferredTime { get; set; }
-        public Guid? refreshToken { get; set; }
+        public string? refreshTokenHash { get; set; }
         public DateTime? refreshTokenExpiry { get; set; }
     }
 }

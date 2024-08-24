@@ -29,9 +29,9 @@ namespace BlitzTypes_API.Repositories
             return query;
         }
 
-        public async Task<User?> GetUserByRefreshTokenHashAsync(Guid refreshTokenHash)
+        public async Task<User?> GetUserByRefreshTokenHashAsync(string refreshTokenHash)
         {
-            var query = await _userManager.Users.FirstOrDefaultAsync(u => u.refreshToken == refreshTokenHash);
+            var query = await _userManager.Users.FirstOrDefaultAsync(u => u.refreshTokenHash == refreshTokenHash);
                 return query;
         }
 
@@ -44,7 +44,7 @@ namespace BlitzTypes_API.Repositories
         public async Task<bool> removeRefreshTokenFromUser(User? user)
         {
             if(user == null) return false;
-            user.refreshToken = null;
+            user.refreshTokenHash = null;
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {

@@ -1,12 +1,15 @@
 ﻿using BlitzTypes_API.Data;
+using BlitzTypes_API.Models;
 using BlitzTypes_API.Models.Authentication;
 using BlitzTypes_API.Repositories;
 using BlitzTypes_API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -14,7 +17,7 @@ using System.Text;
 
 namespace BlitzTypes_API.Controllers
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class AuthenticationController : Controller
@@ -23,6 +26,7 @@ namespace BlitzTypes_API.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly UserService _userService;
+        private readonly AuthenticationService _authenticationService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly BlitzTypesContext _context;
         private readonly UserRepository _userRepository;
@@ -36,6 +40,7 @@ namespace BlitzTypes_API.Controllers
             _httpContextAccessor = httpContextAccessor;
             _context = context;
             _userService = new UserService(userManager, httpContextAccessor, context);
+            _authenticationService = new AuthenticationService(userManager, httpContextAccessor, context, configuration);
             _userRepository = new UserRepository(context, userManager);
         }
 
@@ -72,14 +77,14 @@ namespace BlitzTypes_API.Controllers
             if (result.Succeeded)
             {
                 var user = await _userManager.FindByEmailAsync(info.Principal.FindFirstValue(ClaimTypes.Email));
-                var token = GenerateJwtToken(user);
-                Guid refreshToken = CreateRefreshToken();
-                bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, null);
+                var token = _authenticationService.GenerateJwtToken(user);
+                string newRefreshToken = await _authenticationService.CreateNewRefreshTokenProcedure(user);
+                var isRefreshTokenSet = !String.IsNullOrEmpty(newRefreshToken);
                 if (!isRefreshTokenSet)
                 {
                     return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
                 }
-                _userService.SetCookie(token, refreshToken);
+                _authenticationService.SetCookie(token, newRefreshToken);
                 return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
             }
             else if (result.IsLockedOut)
@@ -109,14 +114,18 @@ namespace BlitzTypes_API.Controllers
                     if (addLoginResult.Succeeded)
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        var token = GenerateJwtToken(user);
-                        Guid refreshToken = CreateRefreshToken();
-                        bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, null);
+                        var token = _authenticationService.GenerateJwtToken(user);
+                        string newRefreshToken = await _authenticationService.CreateNewRefreshTokenProcedure();
+                        var isRefreshTokenSet = !String.IsNullOrEmpty(newRefreshToken);
+                        if (!isRefreshTokenSet)
+                        {
+                            return BadRequest();
+                        }
                         if (!isRefreshTokenSet)
                         {
                             return Redirect(Uri.UnescapeDataString(returnUrl) ?? "/");
                         }
-                        _userService.SetCookie(token, refreshToken);
+                        _authenticationService.SetCookie(token, newRefreshToken);
                         return Redirect(Uri.UnescapeDataString("http://" + returnUrl) ?? "/");
                     }
                     else
@@ -145,13 +154,15 @@ namespace BlitzTypes_API.Controllers
 
             if (result.Succeeded)
             {
-                var token = GenerateJwtToken(user);
-                return Ok(new { Token = token, Message = "User registered successfully!" });
+                var token = _authenticationService.GenerateJwtToken(user);
+                var refreshToken = await _authenticationService.CreateNewRefreshTokenProcedure(user);
+                _authenticationService.SetCookie(token, refreshToken);
+                return Ok(new { Message = "User registered successfully!" });
             }
 
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError("errorDesc", error.Description);
+                ModelState.AddModelError("error", error.Description);
             }
 
             return BadRequest(ModelState);
@@ -161,15 +172,14 @@ namespace BlitzTypes_API.Controllers
         [HttpPost]
         public async Task<IActionResult> GetToken()
         {
-            string refreshTokenStr = await _userService.CreateNewAccessToken();
+            string newRefreshToken = await _authenticationService.CreateNewRefreshTokenProcedure();
 
-            if (string.IsNullOrEmpty(refreshTokenStr)) return BadRequest();
-            Guid refreshToken = Guid.Parse(refreshTokenStr);
-            var user = await _userRepository.GetUserByRefreshTokenHashAsync(refreshToken);
+            if (string.IsNullOrEmpty(newRefreshToken)) return BadRequest();
+            var user = await _userRepository.GetUserByRefreshTokenHashAsync(newRefreshToken);
             if (user == null) return BadRequest(ModelState);
-            var newToken = GenerateJwtToken(user);
+            var newAccessToken = _authenticationService.GenerateJwtToken(user);
 
-            _userService.SetCookie(newToken, refreshToken);
+            _authenticationService.SetCookie(newAccessToken, newRefreshToken);
 
             return Ok();
         }
@@ -180,7 +190,7 @@ namespace BlitzTypes_API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError("error", "Bad Request. Check inputs again.");
                 return BadRequest(ModelState);
             }
 
@@ -192,69 +202,41 @@ namespace BlitzTypes_API.Controllers
 
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "No user found");
+                ModelState.AddModelError("error", "Invalid username or password");
                 return BadRequest(ModelState);
             }
             var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
 
             if (result.Succeeded)
             {
-                var token = GenerateJwtToken(user);
-                Guid refreshToken = CreateRefreshToken();
-                bool isRefreshTokenSet = await _userService.SetRefreshTokenAsync(refreshToken, user);
+                var token = _authenticationService.GenerateJwtToken(user);
+                string newRefreshToken = await _authenticationService.CreateNewRefreshTokenProcedure(user);
+                var isRefreshTokenSet = !String.IsNullOrEmpty(newRefreshToken);
                 if (!isRefreshTokenSet)
                 {
                     return BadRequest();
                 }
-                _userService.SetCookie(token, refreshToken);
+                _authenticationService.SetCookie(token, newRefreshToken);
                 return Ok();
             }
             else
             {
-                return Unauthorized(new { Message = "Invalid login attempt." });
+                return Unauthorized(new { Error = "Invalid username or password" });
             }
         }
 
-        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
             var user = await _userService.GetCurrentUser();
-            if (user == null) { return Unauthorized(); }
-            var isUserLoggedOut = await _userService.logoutUser(user);
+            if (user == null)
+            {
+                var currentRefreshToken = _httpContextAccessor.HttpContext.Request.Cookies["RefreshToken"];
+                user = await _userRepository.GetUserByRefreshTokenHashAsync(currentRefreshToken);
+            }
+            var isUserLoggedOut = await _authenticationService.logoutUser(user);
             if (!isUserLoggedOut) { return StatusCode(500, "An unexpected error occured working with the current HttpContext."); }
             return Ok( new { Message = "Successfully logged out User" });
         }
-
-        private string GenerateJwtToken(User user)
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        [NonAction]
-        public Guid CreateRefreshToken()
-        {
-            // encryption todo
-            Guid refreshToken = Guid.NewGuid();
-            return refreshToken;
-        }
-
     }
 }

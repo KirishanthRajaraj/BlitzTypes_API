@@ -53,6 +53,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<WordsRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthenticationService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
