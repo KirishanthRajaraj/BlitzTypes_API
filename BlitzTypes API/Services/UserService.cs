@@ -61,9 +61,9 @@ namespace BlitzTypes_API.Services
                 return false;
             }
 
-            if (highscore > user.highScoreWPM || user.highScoreWPM == null)
+            if (highscore > user.highScoreWPM_15_sec || user.highScoreWPM_15_sec == null)
             {
-                user.highScoreWPM = highscore;
+                user.highScoreWPM_15_sec = highscore;
                 var result = await _userManager.UpdateAsync(user);
                 return result.Succeeded;
             }

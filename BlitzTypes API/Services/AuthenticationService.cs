@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,7 +32,6 @@ namespace BlitzTypes_API.Services
             _userRepository = new UserRepository(context, userManager);
             _configuration = configuration;
         }
-
 
         public async Task<bool> SetRefreshTokenAsync(User? _user, string newRefreshTokenHash, string? oldRefreshTokenHash = null)
         {
@@ -198,22 +198,14 @@ namespace BlitzTypes_API.Services
 
                     if (rememberMe)
                     {
-                        cookieOptionsRefreshToken.Expires = DateTime.Now.AddMinutes(15);
+                        cookieOptionsRefreshToken.Expires = DateTime.Now.AddDays(30);
                         _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken, cookieOptionsRefreshToken);
                     }
                     else
                     {
-                        // if user unselected remember me option, do   storage of cookie
+                        // if user unselected remember me option, do session storage of cookie
                         _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken, cookieOptionsRefreshToken);
                     }
-
-                    _httpContextAccessor.HttpContext.Response.Cookies.Append("RefreshToken", refreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                        Secure = true,
-                        Expires = DateTime.UtcNow.AddDays(30)
-                    });
                 }
                 else if (logout)
                 {

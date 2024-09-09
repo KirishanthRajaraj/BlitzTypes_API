@@ -53,36 +53,28 @@ namespace BlitzTypes_API.Controllers
 
         [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet]
-        public async Task<IActionResult> GetCurrentUserForFrontend()
+        public async Task<IActionResult> GetCurrentUser()
         {
-            var claims = _httpContextAccessor.HttpContext?.User?.Claims;
-            if (claims == null)
+            ClaimsPrincipal currentUser = this.User;
+            var currentUserName = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
+            User user = await _userManager.FindByNameAsync(currentUserName);
+
+            if(user == null)
             {
-                return NotFound();
-            }
-
-            var nameIdentifierClaims = _httpContextAccessor.HttpContext?.User?.Claims
-                .Where(c => c.Type == ClaimTypes.NameIdentifier);
-
-            var userId = nameIdentifierClaims?.LastOrDefault()?.Value;
-
-            if (userId == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-            {
-                return NotFound();
+                return Unauthorized();
             }
 
             return Ok(new
             {
                 user.Id,
                 user.UserName,
-                user.Email
+                user.Email,
+                user.highScoreAccuracy,
+                user.highScoreWPM_15_sec,
+                user.joinedDate,
+                user.preferredLanguage,
+                user.preferredTime,
+                user.secondsWritten,
             });
         }
 
@@ -93,13 +85,14 @@ namespace BlitzTypes_API.Controllers
             {
                 List<User> candidates = _userRepository.GetAllUsers();
                 var result = candidates
-                .Where(user => user.highScoreWPM > 0)
+                .Where(user => user.highScoreWPM_15_sec > 0)
                 .Select(user => new
                 {
                     user.UserName,
-                    user.highScoreWPM
+                    user.highScoreWPM_15_sec,
+                    user.Id
                 })
-                .OrderByDescending(user => user.highScoreWPM)
+                .OrderByDescending(user => user.highScoreWPM_15_sec)
                 .ToList();
                 return Ok(result);
             }
