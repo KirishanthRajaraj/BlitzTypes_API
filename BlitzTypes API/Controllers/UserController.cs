@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Net.NetworkInformation;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace BlitzTypes_API.Controllers
@@ -37,11 +38,14 @@ namespace BlitzTypes_API.Controllers
 
         [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpPost]
-        public async Task<IActionResult> SetWPMHighscore([FromBody] ResultModel resultModel)
+        public async Task<IActionResult> submitTypingResult([FromBody] ResultModel resultModel)
         {
             try
             {
-                var status = await _userService.SetWPMHighscore(resultModel.score);
+                var status = await _userService.SetWPMHighscore(resultModel.score, resultModel.typingTime);
+                
+                status = await _userService.IncrementTestAmount();
+                if (!status) return (StatusCode(500, "Internal Server Error"));
 
                 return Ok(status);
             }
@@ -56,10 +60,10 @@ namespace BlitzTypes_API.Controllers
         public async Task<IActionResult> GetCurrentUser()
         {
             ClaimsPrincipal currentUser = this.User;
-            var currentUserName = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var currentUserName = currentUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             User user = await _userManager.FindByNameAsync(currentUserName);
 
-            if(user == null)
+            if (user == null)
             {
                 return Unauthorized();
             }
@@ -71,10 +75,13 @@ namespace BlitzTypes_API.Controllers
                 user.Email,
                 user.highScoreAccuracy,
                 user.highScoreWPM_15_sec,
+                user.highScoreWPM_30_sec,
+                user.highScoreWPM_60_sec,
                 user.joinedDate,
                 user.preferredLanguage,
                 user.preferredTime,
                 user.secondsWritten,
+                user.testAmount
             });
         }
 
@@ -83,18 +90,31 @@ namespace BlitzTypes_API.Controllers
         {
             try
             {
-                List<User> candidates = _userRepository.GetAllUsers();
-                var result = candidates
-                .Where(user => user.highScoreWPM_15_sec > 0)
-                .Select(user => new
+                List<User> users = _userRepository.GetAllUsers();
+                List<LeaderboardUser> candidates = new List<LeaderboardUser>();
+
+                foreach (var user in users)
                 {
-                    user.UserName,
-                    user.highScoreWPM_15_sec,
-                    user.Id
-                })
-                .OrderByDescending(user => user.highScoreWPM_15_sec)
-                .ToList();
-                return Ok(result);
+                    LeaderboardUser leaderboardUser = new LeaderboardUser();
+                    List<int> highScores = new List<int>();
+                    leaderboardUser.UserName = user.UserName;
+                    leaderboardUser.Id = user.Id;
+                     
+                    var highestHighscore = new List<int>
+                    {
+                        user.highScoreWPM_15_sec ?? 0,
+                        user.highScoreWPM_30_sec ?? 0,
+                        user.highScoreWPM_60_sec ?? 0
+                    }.Max();
+
+
+                    leaderboardUser.highScoreWPM = highestHighscore;
+                    candidates.Add(leaderboardUser);
+                }
+
+                candidates = candidates.OrderByDescending(candidate => candidate.highScoreWPM).Where(c => c.highScoreWPM > 0).ToList();
+
+                return Ok(candidates);
             }
             catch (Exception ex)
             {

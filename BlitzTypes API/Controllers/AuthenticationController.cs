@@ -123,6 +123,7 @@ namespace BlitzTypes_API.Controllers
                 {
                     UserName = givenName,
                     Email = email,
+                    joinedDate = DateTime.Now
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
@@ -134,7 +135,7 @@ namespace BlitzTypes_API.Controllers
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         var token = _authenticationService.GenerateJwtToken(user);
                         string newRefreshToken = await _authenticationService.CreateNewRefreshTokenProcedure();
-                        var isRefreshTokenSet = !String.IsNullOrEmpty(newRefreshToken);
+                        var isRefreshTokenSet = !string.IsNullOrEmpty(newRefreshToken);
                         if (!isRefreshTokenSet)
                         {
                             return BadRequest();
@@ -171,7 +172,7 @@ namespace BlitzTypes_API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = new User { UserName = model.Username, Email = model.Email };
+            var user = new User { UserName = model.Username, Email = model.Email, joinedDate = DateTime.Now };
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -179,6 +180,7 @@ namespace BlitzTypes_API.Controllers
                 var token = _authenticationService.GenerateJwtToken(user);
                 var refreshToken = await _authenticationService.CreateNewRefreshTokenProcedure(user);
                 _authenticationService.SetCookie(token, refreshToken);
+
                 Log.Information("New user with ID {UserId} was successfully created and registered", user.Id);
                 return Ok(new { Message = "User registered successfully!" });
             }

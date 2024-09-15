@@ -32,7 +32,7 @@ namespace BlitzTypes_API.Services
             _userRepository = new UserRepository(context, userManager);
         }
 
-        public async Task<bool> SetWPMHighscore(int? highscore)
+        public async Task<bool> SetWPMHighscore(int? highscore, int? typingTime)
         {
             if (highscore < 0)
             {
@@ -61,13 +61,47 @@ namespace BlitzTypes_API.Services
                 return false;
             }
 
-            if (highscore > user.highScoreWPM_15_sec || user.highScoreWPM_15_sec == null)
+            switch (typingTime)
             {
-                user.highScoreWPM_15_sec = highscore;
-                var result = await _userManager.UpdateAsync(user);
-                return result.Succeeded;
+                case 15:
+                    if (highscore > user.highScoreWPM_15_sec || user.highScoreWPM_15_sec == null)
+                    {
+                        user.highScoreWPM_15_sec = highscore;
+                        var result = await _userManager.UpdateAsync(user);
+                        return result.Succeeded;
+                    }
+                    break;
+                case 30:
+                    if (highscore > user.highScoreWPM_30_sec || user.highScoreWPM_30_sec == null)
+                    {
+                        user.highScoreWPM_30_sec = highscore;
+                        var result = await _userManager.UpdateAsync(user);
+                        return result.Succeeded;
+                    }
+                    break;
+                case 60:
+                    if (highscore > user.highScoreWPM_60_sec || user.highScoreWPM_60_sec == null)
+                    {
+                        user.highScoreWPM_60_sec = highscore;
+                        var result = await _userManager.UpdateAsync(user);
+                        return result.Succeeded;
+                    }
+                    break;
             }
+
             return false;
+        }
+
+        public async Task<bool> IncrementTestAmount()
+        {
+            var user = await GetCurrentUser();
+            if (user.testAmount == null)
+            {
+                user.testAmount = 1;
+            }
+            user.testAmount++;
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
         }
 
         public async Task<User?> GetCurrentUser()
